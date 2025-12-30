@@ -24,6 +24,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
     return true;
   }
+
+  // 站内已读上报
+  if (message.type === 'MARK_READ_ON_SITE') {
+    const formData = new FormData();
+    formData.append('topic_id', message.topicId);
+    formData.append('post_number', message.postNumber);
+
+    fetch(`${BASE_URL}/topics/read`, {
+      method: 'POST',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: formData,
+      credentials: 'include'
+    })
+    .then(res => res.json())
+    .then(data => console.log('Mark read success:', data))
+    .catch(err => console.error('Mark read failed:', err));
+    return true;
+  }
 });
 
 // 更新图标角标

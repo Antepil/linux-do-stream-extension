@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Linux.do 主题流",
-  "version": "4.2.0",
-  "description": "主题定制版 Linux.do 侧边栏插件，支持亮色/暗色/跟随系统模式切换",
+  "version": "4.3.0",
+  "description": "智能同步版 Linux.do 侧边栏插件，支持站内已读状态双向同步",
   "permissions": [
     "sidePanel",
     "alarms",

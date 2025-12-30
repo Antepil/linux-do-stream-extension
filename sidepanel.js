@@ -45,7 +45,8 @@ const DEFAULT_CONFIG = {
   notifyKeywords: '',
   fontSize: 'medium',
   compactMode: false,
-  themeMode: 'system'
+  themeMode: 'system',
+  syncReadStatus: true
 };
 
 // 状态管理
@@ -123,6 +124,8 @@ function loadConfigToUI() {
   notifyKeywords.value = config.notifyKeywords;
   fontSize.value = config.fontSize;
   compactMode.checked = config.compactMode;
+  const syncReadStatus = document.getElementById('syncReadStatus');
+  if (syncReadStatus) syncReadStatus.checked = config.syncReadStatus;
   
   const clickRadio = document.querySelector(`input[name="clickBehavior"][value="${config.clickBehavior}"]`);
   if (clickRadio) clickRadio.checked = true;
@@ -181,6 +184,7 @@ function toggleSubCategoryVisibility() {
 }
 
 function saveConfig() {
+    const syncReadStatus = document.getElementById('syncReadStatus');
     config = {
       ...config,
       pollingInterval: parseInt(pollingInterval.value),
@@ -194,7 +198,8 @@ function saveConfig() {
       notifyKeywords: notifyKeywords.value,
       fontSize: fontSize.value,
       compactMode: compactMode.checked,
-      themeMode: document.querySelector('input[name="themeMode"]:checked').value
+      themeMode: document.querySelector('input[name="themeMode"]:checked').value,
+      syncReadStatus: syncReadStatus ? syncReadStatus.checked : true
     };
   chrome.storage.local.set({ config });
   applyAppearance();
@@ -347,7 +352,9 @@ function applyFilters(topics) {
 
 function createTopicElement(t) {
   const el = document.createElement('div');
-  const isRead = readTopicIds.has(t.id);
+  // 智能已读识别：本地记录 OR (同步开启且站内已读)
+  const isSiteRead = config.syncReadStatus && t.last_read_post_number && t.last_read_post_number >= t.highest_post_number;
+  const isRead = readTopicIds.has(t.id) || isSiteRead;
   el.className = `topic-item ${isRead && config.readStatusAction === 'fade' ? 'read' : ''}`;
   el.dataset.topicId = t.id;
   
@@ -402,7 +409,7 @@ function createTopicElement(t) {
 
 function handleTopicClick(t, e) {
   const url = `https://linux.do/t/${t.id}`;
-  markAsRead(t.id);
+  markAsRead(t.id, t.highest_post_number);
   
   const behavior = config.clickBehavior;
   if (behavior === 'background' || e.ctrlKey || e.metaKey || e.button === 1) {
@@ -412,8 +419,18 @@ function handleTopicClick(t, e) {
   }
 }
 
-function markAsRead(id) {
+function markAsRead(id, postNumber) {
   readTopicIds.add(id);
+  
+  // 如果开启了同步，则上报给站内
+  if (config.syncReadStatus && postNumber) {
+    chrome.runtime.sendMessage({ 
+      type: 'MARK_READ_ON_SITE', 
+      topicId: id, 
+      postNumber: postNumber 
+    });
+  }
+
   const el = document.querySelector(`.topic-item[data-topic-id="${id}"]`);
   if (el) {
     if (config.readStatusAction === 'hide') {

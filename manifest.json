@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Linux.do 主题流",
-  "version": "4.3.0",
-  "description": "智能同步版 Linux.do 侧边栏插件，支持站内已读状态双向同步",
+  "version": "4.4.0",
+  "description": "等级外显版 Linux.do 侧边栏插件，支持用户信任等级勋章显示",
   "permissions": [
     "sidePanel",
     "alarms",

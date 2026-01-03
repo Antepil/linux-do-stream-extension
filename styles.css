@@ -499,6 +499,33 @@ body {
   transition: all 0.2s ease;
 }
 
+/* 用户信任等级勋章样式 */
+.trust-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.trust-badge svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.trust-badge.admin { color: #FFD700; filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.5)); }
+.trust-badge.l4 { color: #AF52DE; }
+.trust-badge.l3 { color: #007AFF; }
+.trust-badge.l2 { color: #34C759; }
+.trust-badge.l1 { color: #8E8E93; }
+
+/* 紧凑模式下的微调 */
+.compact .trust-badge svg {
+  width: 12px;
+  height: 12px;
+}
+
 .selectable-tag.blocked {
   background: var(--apple-red);
   color: white;

@@ -371,6 +371,18 @@ function createTopicElement(t) {
     });
   }
 
+  // 提取信任等级
+  let trustLevel = 0;
+  let isAdmin = false;
+  if (t.posters && t.posters.length > 0) {
+    const op = t.posters.find(p => p.description.includes('Original Poster'));
+    if (op && op.user) {
+      trustLevel = op.user.trust_level || 0;
+      isAdmin = op.user.admin || false;
+    }
+  }
+  const trustBadge = getTrustBadge(trustLevel, isAdmin);
+
   el.innerHTML = `
     ${isNew && !isRead ? '<div class="new-dot"></div>' : ''}
     <div class="tag-container">${tagsHtml}</div>
@@ -379,6 +391,7 @@ function createTopicElement(t) {
     <div class="topic-meta">
       <div class="meta-group">
         ${!config.lowDataMode ? ICONS.user : ''} <span>${t.last_poster_username || '匿名'}</span>
+        ${trustBadge}
       </div>
       <div class="meta-group">
         ${ICONS.posts} <span>${formatNumber(t.posts_count)}</span>
@@ -568,6 +581,28 @@ function handleNewTopics(newTopics) {
     renderTopics();
     updateTopicCount();
   }
+}
+
+function getTrustBadge(level, isAdmin) {
+  if (isAdmin) {
+    return `<span class="trust-badge admin" title="管理员">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+    </span>`;
+  }
+  
+  const badges = {
+    4: { class: 'l4', title: '信任等级 4: 领袖', icon: '<path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5Z"/>' },
+    3: { class: 'l3', title: '信任等级 3: 常任成员', icon: '<path d="M12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27Z"/>' },
+    2: { class: 'l2', title: '信任等级 2: 成员', icon: '<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>' },
+    1: { class: 'l1', title: '信任等级 1: 基本用户', icon: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>' }
+  };
+  
+  const badge = badges[level];
+  if (!badge) return '';
+  
+  return `<span class="trust-badge ${badge.class}" title="${badge.title}">
+    <svg viewBox="0 0 24 24">${badge.icon}</svg>
+  </span>`;
 }
 
 init();

@@ -90,10 +90,14 @@ async function fetchWithRetry(endpoint, retries = 2) {
       topics = data;
     }
 
-    return { success: true, topics };
+    return { 
+      success: true, 
+      topics,
+      users: data.users // 包含用户信息以提取信任等级
+    };
   } catch (error) {
     console.error(`抓取失败 [${jsonUrl}]:`, error);
-    return { success: false, error: error.message, topics: [] };
+    return { success: false, error: error.message, topics: [], users: [] };
   }
 }
 

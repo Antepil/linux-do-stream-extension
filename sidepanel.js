@@ -267,6 +267,11 @@ async function loadTopics() {
     const res = await chrome.runtime.sendMessage({ type: 'FETCH_API', endpoint });
     
     if (res && res.success && res.topics) {
+      // 建立用户 ID 到用户数据的映射表，用于提取信任等级
+      if (res.users) {
+        window.allUsersMap = new Map(res.users.map(u => [u.id, u]));
+      }
+      
       allTopics = res.topics;
       checkNotifications(allTopics);
       renderTopics();
@@ -371,14 +376,19 @@ function createTopicElement(t) {
     });
   }
 
-  // 提取信任等级
+  // 提取信任等级 (从全局 users 数组中匹配)
   let trustLevel = 0;
   let isAdmin = false;
+  
   if (t.posters && t.posters.length > 0) {
-    const op = t.posters.find(p => p.description.includes('Original Poster'));
-    if (op && op.user) {
-      trustLevel = op.user.trust_level || 0;
-      isAdmin = op.user.admin || false;
+    // 优先查找最新发帖人 (latest)，因为 meta 显示的是最新发帖人名字
+    const latestPoster = t.posters.find(p => p.extras === 'latest') || t.posters[t.posters.length - 1];
+    const userId = latestPoster ? latestPoster.user_id : null;
+    
+    if (userId && window.allUsersMap && window.allUsersMap.has(userId)) {
+      const userData = window.allUsersMap.get(userId);
+      trustLevel = userData.trust_level || 0;
+      isAdmin = userData.admin || false;
     }
   }
   const trustBadge = getTrustBadge(trustLevel, isAdmin);
